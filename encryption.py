@@ -21,6 +21,12 @@ def decrypt_text(cipher_text, iv, key):
     decrypted_text = unpad(cipher.decrypt(base64.b64decode(cipher_text)), AES.block_size)
     return decrypted_text.decode('utf-8')
 
+
+def decrypt_cfb_func(cipher_text,iv, key):
+    decrypt_cipher = AES.new(key, AES.MODE_CFB, iv=iv)
+    decrypted_data = decrypt_cipher.decrypt(cipher_text)
+    return decrypted_data
+
 @app.route('/')
 def index():
     return "hello"
@@ -37,6 +43,30 @@ def decrypt():
     iv = request.form['iv']
     decrypted_data = decrypt_text(cipher_text, iv, secret_key)
     return decrypted_data
+
+@app.route('/encrypt-cfb', methods=['POST'])
+def encrypt_cfb():
+    text_to_encrypt = request.form['text_to_encrypt']
+    cipher = AES.new(secret_key, AES.MODE_CFB)
+
+    encrypted_data =cipher.encrypt(text_to_encrypt.encode())
+    iv = cipher.iv
+    response = {
+        'cipher_text': base64.b64encode(encrypted_data).decode('utf-8'),
+        'iv':base64.b64encode(cipher.iv).decode('utf-8')
+    }
+    return response
+@app.route('/decrypt-cfb', methods=['POST'])
+def decrypt_cfb():
+    cipher_text = request.form['cipher_text']
+    iv = request.form['iv']
+    decrypted_data = decrypt_cfb_func(cipher_text, iv, secret_key)
+    response = {
+        'plaintext ':decrypted_data
+        
+    }
+    return response
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
